@@ -7,11 +7,41 @@ Dissect layout traversals on Android.
 
 
 
+Features
+--------
+- Intercept `View` methods:
+  - `onMeasure(int, int)`
+  - `onLayout(boolean, int, int, int, int)`
+  - `draw(Canvas)` and `onDraw(Canvas)`
+  - `requestLayout()`
+- Completely override any of these method on-the-fly.
+
+
+
 Usage
 -----
 
-Soon...
+1. Implement an `Interceptor`:
+```java
+public class DrawGreen extends Interceptor {
+    private final Paint mPaint;
 
+    public DrawGreen() {
+        mPaint = new Paint();
+        mPaint.setColor(Color.GREEN);
+    }
+
+    @Override
+    public void onDraw(View view, Canvas canvas) {
+        canvas.drawPaint(mPaint);
+    }
+}
+```
+2. Create a `Probe` and inflate a layout:
+```java
+Probe probe = new Probe(this, new DrawGreen(), new Filter.ViewId(R.id.view2));
+View root = probe.inflate(R.layout.main_activity, null);
+```
 
 
 Download
