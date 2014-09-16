@@ -39,7 +39,7 @@ class ViewClassUtil {
     };
 
     /**
-     * Loads clas for the given class name.
+     * Loads class for the given class name.
      */
     static Class<?> loadViewClass(Context context, String name)
             throws ClassNotFoundException {
