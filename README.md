@@ -9,12 +9,14 @@ Dissect layout traversals on Android.
 
 Features
 --------
-- Intercept `View` methods:
+- Intercept `View` methods.
   - `onMeasure(int, int)`
   - `onLayout(boolean, int, int, int, int)`
   - `draw(Canvas)` and `onDraw(Canvas)`
   - `requestLayout()`
-- Completely override any of these method on-the-fly.
+- Override any of these methods on-the-fly.
+- Layout debugging:
+  - `OvermeasureInterceptor`: Tints views according to the number of times they got measured in a single traversal.
 
 
 
