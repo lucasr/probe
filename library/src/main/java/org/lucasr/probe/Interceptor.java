@@ -41,9 +41,7 @@ import android.view.View;
  * </pre>
  *
  * An {@link Interceptor} can also be used to track and benchmark the behaviour of
- * specific views in your Android UI. When benchmarking, keep in mind that Probe
- * uses reflection to make calls to the wrapped {@link View} classes which affect
- * the performance of the wrapped views.
+ * specific views in your Android UI.
  */
 public class Interceptor {
     public void onMeasure(View view, int widthMeasureSpec, int heightMeasureSpec) {
