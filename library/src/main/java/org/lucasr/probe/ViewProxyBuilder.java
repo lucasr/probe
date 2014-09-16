@@ -69,13 +69,20 @@ final class ViewProxyBuilder<T extends View> {
         SET_MEASURED_DIMENSION("setMeasuredDimension");
 
         private final String mMethodName;
+        private final String mSuperMethodName;
 
         private ViewMethod(String methodName) {
             mMethodName = methodName;
+            mSuperMethodName = "super" + Character.toUpperCase(methodName.charAt(0)) +
+                    methodName.substring(1);
         }
 
         String getName() {
             return mMethodName;
+        }
+
+        String getSuperName() {
+            return mSuperMethodName;
         }
     }
 
@@ -89,6 +96,7 @@ final class ViewProxyBuilder<T extends View> {
     private static final TypeId<Canvas> CANVAS_TYPE = TypeId.get(Canvas.class);
     private static final TypeId<Interceptor> INTERCEPTOR_TYPE = TypeId.get(Interceptor.class);
     private static final TypeId<View> VIEW_TYPE = TypeId.get(View.class);
+    private static final TypeId<ViewProxy> VIEW_PROXY_TYPE = TypeId.get(ViewProxy.class);
     private static final TypeId<Void> VOID_TYPE = TypeId.get(void.class);
 
     private static final Class<?>[] CONSTRUCTOR_ARG_TYPES =
@@ -183,7 +191,7 @@ final class ViewProxyBuilder<T extends View> {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                superMethodName(methodName), TypeId.INT, TypeId.INT);
+                ViewMethod.ON_MEASURE.getSuperName(), TypeId.INT, TypeId.INT);
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -242,7 +250,8 @@ final class ViewProxyBuilder<T extends View> {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                superMethodName(methodName), TypeId.BOOLEAN, TypeId.INT, TypeId.INT, TypeId.INT, TypeId.INT);
+                ViewMethod.ON_LAYOUT.getSuperName(), TypeId.BOOLEAN, TypeId.INT, TypeId.INT,
+                TypeId.INT, TypeId.INT);
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -296,7 +305,7 @@ final class ViewProxyBuilder<T extends View> {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod =
-                generatedType.getMethod(VOID_TYPE, superMethodName(methodName), CANVAS_TYPE);
+                generatedType.getMethod(VOID_TYPE, viewMethod.getSuperName(), CANVAS_TYPE);
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -353,7 +362,7 @@ final class ViewProxyBuilder<T extends View> {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod =
-                generatedType.getMethod(VOID_TYPE, superMethodName(methodName));
+                generatedType.getMethod(VOID_TYPE, ViewMethod.REQUEST_LAYOUT.getSuperName());
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -375,7 +384,7 @@ final class ViewProxyBuilder<T extends View> {
                 TypeId.INT);
 
         final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                superMethodName(methodName), TypeId.INT, TypeId.INT);
+                ViewMethod.SET_MEASURED_DIMENSION.getSuperName(), TypeId.INT, TypeId.INT);
 
         final Code code = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -411,7 +420,8 @@ final class ViewProxyBuilder<T extends View> {
         generateRequestLayoutMethod(dexMaker, generatedType, baseType);
         generateSetMeasuredDimension(dexMaker, generatedType, baseType);
 
-        dexMaker.declare(generatedType, proxyClassName + ".generated", PUBLIC, baseType);
+        dexMaker.declare(generatedType, proxyClassName + ".generated", PUBLIC, baseType,
+                VIEW_PROXY_TYPE);
 
         final ClassLoader classLoader = dexMaker.generateAndLoad(PARENT_CLASS_LOADER, mDexCache);
         try {
@@ -461,10 +471,6 @@ final class ViewProxyBuilder<T extends View> {
         }
     }
 
-    private static String superMethodName(String methodName) {
-        return "$__super$" + methodName;
-    }
-
     private static <T> String getClassNameForProxyOf(Class<? extends T> clazz) {
         return clazz.getSimpleName() + "_Proxy";
     }
@@ -486,80 +492,48 @@ final class ViewProxyBuilder<T extends View> {
      * Calls {@code super.onMeasure(int, int)} on the given {@link View}.
      */
     static void superOnMeasure(View view, int widthMeasureSpec, int heightMeasureSpec) {
-        try {
-            view.getClass()
-                .getMethod(superMethodName(ViewMethod.ON_MEASURE.getName()), int.class, int.class)
-                .invoke(view, widthMeasureSpec, heightMeasureSpec);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to call super.onMeasure(int, int) on " + view);
-        }
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.superOnMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     /**
      * Calls {@code super.onLayout(boolean, int, int, int, int)} on the given {@link View}.
      */
     static void superOnLayout(View view, boolean changed, int l, int t, int r, int b) {
-        try {
-            view.getClass()
-                .getMethod(superMethodName(ViewMethod.ON_LAYOUT.getName()), boolean.class,
-                        int.class, int.class, int.class, int.class)
-                .invoke(view, changed, l, t, r, b);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to call super.onLayout(boolean int, int, int, int) in " + view);
-        }
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.superOnLayout(changed, l, t, r, b);
     }
 
     /**
      * Calls {@code super.draw(Canvas)} on the given {@link View}.
      */
     static void superDraw(View view, Canvas canvas) {
-        try {
-            view.getClass()
-                .getMethod(superMethodName(ViewMethod.DRAW.getName()), Canvas.class)
-                .invoke(view, canvas);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to call super.draw(Canvas) in " + view);
-        }
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.superDraw(canvas);
     }
 
     /**
      * Calls {@code super.onDraw(Canvas)} on the given {@link View}.
      */
     static void superOnDraw(View view, Canvas canvas) {
-        try {
-            view.getClass()
-                .getMethod(superMethodName(ViewMethod.ON_DRAW.getName()), Canvas.class)
-                .invoke(view, canvas);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to call super.onDraw(Canvas) in " + view);
-        }
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.superOnDraw(canvas);
     }
 
     /**
      * Calls {@code super.requestLayout()} on the given {@link View}.
      */
     static void superRequestLayout(View view) {
-        try {
-            view.getClass()
-                .getMethod(superMethodName(ViewMethod.REQUEST_LAYOUT.getName()))
-                .invoke(view);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to call super.requestLayout() in " + view);
-        }
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.superRequestLayout();
     }
 
     /**
      * Calls {@code super.setMeasuredDimension(int, int)} on the given {@link View}.
      */
     static void superSetMeasuredDimension(View view, int width, int height) {
-        try {
-            view.getClass()
-                    .getMethod(superMethodName(ViewMethod.SET_MEASURED_DIMENSION.getName()),
-                            int.class, int.class)
-                    .invoke(view, width, height);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to call super.onMeasure(int, int) on " + view);
-        }
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.superSetMeasuredDimension(width, height);
     }
 
     ViewProxyBuilder interceptor(Interceptor interceptor) {
