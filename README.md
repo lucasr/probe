@@ -88,4 +88,4 @@ License
     limitations under the License.
 
 
- [1]: http://repository.sonatype.org/service/local/artifact/maven/redirect?r=central-proxy&g=org.lucasr.dspec&a=dspec&v=LATEST
+ [1]: https://oss.sonatype.org/service/local/artifact/maven/redirect?r=releases&g=org.lucasr.probe&a=probe&e=aar&v=LATEST
