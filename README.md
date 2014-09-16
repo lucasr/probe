@@ -17,7 +17,7 @@ Features
 - Override any of these methods on-the-fly.
 - Layout debugging:
   - `OvermeasureInterceptor`: Tints views according to the number of times they got measured in a single traversal.
-
+  - `LayoutBoundsInterceptor`: Equivalent to Android's "Show layout bounds" developer option. The main difference being that you can show bounds only for specific views.
 
 
 Usage
