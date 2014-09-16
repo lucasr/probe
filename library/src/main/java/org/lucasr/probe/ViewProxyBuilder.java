@@ -390,7 +390,7 @@ final class ViewProxyBuilder<T extends View> {
      * Generates dynamic {@link View} proxy class.
      */
     @SuppressWarnings("unchecked")
-    private Class<? extends T> buildProxyClass() throws IOException {
+    private Class<? extends T> generateProxyClass() throws IOException {
         Class<? extends T> proxyClass = (Class) sGeneratedProxyClasses.get(mBaseClass);
         if (proxyClass != null && proxyClass.getClassLoader().getParent() == PARENT_CLASS_LOADER) {
             // Cache hit; return immediately.
@@ -582,7 +582,7 @@ final class ViewProxyBuilder<T extends View> {
      * Builds instance of the built {@link View} proxy class..
      */
     View build() throws IOException {
-        final Class<? extends T> proxyClass = buildProxyClass();
+        final Class<? extends T> proxyClass = generateProxyClass();
         final Constructor<? extends T> constructor = getProxyClassConstructor(proxyClass);
 
         final View result;
