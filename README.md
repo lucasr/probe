@@ -23,37 +23,43 @@ Features
 Usage
 -----
 
-1. Implement an `Interceptor`:
-```java
-public class DrawGreen extends Interceptor {
-    private final Paint mPaint;
+ 1. Implement an `Interceptor`:
 
-    public DrawGreen() {
-        mPaint = new Paint();
-        mPaint.setColor(Color.GREEN);
-    }
+  ```java
+  public class DrawGreen extends Interceptor {
+      private final Paint mPaint;
+  
+      public DrawGreen() {
+          mPaint = new Paint();
+          mPaint.setColor(Color.GREEN);
+      }
+  
+      @Override
+      public void onDraw(View view, Canvas canvas) {
+          canvas.drawPaint(mPaint);
+      }
+  }
+  ```
 
-    @Override
-    public void onDraw(View view, Canvas canvas) {
-        canvas.drawPaint(mPaint);
-    }
-}
-```
-2. Create a `Probe` and inflate a layout:
-```java
-Probe probe = new Probe(this, new DrawGreen(), new Filter.ViewId(R.id.view2));
-View root = probe.inflate(R.layout.main_activity, null);
-```
+ 2. Create a `Probe` and inflate a layout:
+ 
+  ```java
+  Probe probe = new Probe(this, new DrawGreen(), new Filter.ViewId(R.id.view2));
+  View root = probe.inflate(R.layout.main_activity, null);
+  ```
 
 
 Download
 --------
 
 Download [the latest JAR][1] or grab via Gradle:
+
 ```groovy
 compile 'org.lucasr.probe:probe:0.1.0'
 ```
+
 or Maven:
+
 ```xml
 <dependency>
   <groupId>org.lucasr.probe</groupId>
