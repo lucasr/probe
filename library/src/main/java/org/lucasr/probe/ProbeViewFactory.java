@@ -73,6 +73,6 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
 
     @Override
     public View onCreateView(String name, Context context, AttributeSet attrs) {
-        return null;
+        return onCreateView(null, name, context, attrs);
     }
 }
