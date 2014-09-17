@@ -62,7 +62,7 @@ public class OvermeasureInterceptor extends Interceptor {
 
     private final Paint mTintPaint;
 
-    public OvermeasureInterceptor(Context context, int rootId) {
+    public OvermeasureInterceptor(int rootId) {
         mRootId = rootId;
         mMeasureByView = new WeakHashMap<View, Integer>();
         mTintPaint = new Paint();

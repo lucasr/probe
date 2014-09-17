@@ -28,7 +28,7 @@ public final class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final Probe probe = new Probe(this, new OvermeasureInterceptor(this, R.id.root));
+        final Probe probe = new Probe(this, new OvermeasureInterceptor(R.id.root));
         final View root = probe.inflate(R.layout.main_activity, null);
         setContentView(root);
     }
