@@ -61,7 +61,7 @@ Download
 Download [the latest JAR][1] or grab via Gradle:
 
 ```groovy
-compile 'org.lucasr.probe:probe:0.1.0'
+compile 'org.lucasr.probe:probe:0.1.1'
 ```
 
 or Maven:
@@ -70,7 +70,7 @@ or Maven:
 <dependency>
   <groupId>org.lucasr.probe</groupId>
   <artifactId>probe</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
