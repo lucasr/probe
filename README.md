@@ -6,7 +6,6 @@ Dissect layout traversals on Android.
 ![](images/sample.png)
 
 
-
 Features
 --------
 - Intercept `View` methods.
@@ -41,12 +40,19 @@ Usage
   }
   ```
 
- 2. Create a `Probe` and inflate a layout:
+
+ 2. Deploy your `Interceptor` with an (optional) `Filter`:
  
-  ```java
-  Probe probe = new Probe(this, new DrawGreen(), new Filter.ViewId(R.id.view2));
-  View root = probe.inflate(R.layout.main_activity, null);
-  ```
+ ```java
+ public final class MainActivity extends Activity {
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         Probe.deploy(this, new DrawGreen(), new Filter.viewId(R.id.view2));
+         setContentView(R.id.main_activity);
+     }
+ }
+ ```
 
 
 Download
@@ -67,7 +73,6 @@ or Maven:
   <version>0.1.0</version>
 </dependency>
 ```
-
 
 
 License

@@ -18,7 +18,6 @@ package org.lucasr.probe.sample;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
 
 import org.lucasr.probe.Probe;
 import org.lucasr.probe.interceptors.OvermeasureInterceptor;
@@ -27,9 +26,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        final Probe probe = new Probe(this, new OvermeasureInterceptor(R.id.root));
-        final View root = probe.inflate(R.layout.main_activity, null);
-        setContentView(root);
+        Probe.deploy(this, new OvermeasureInterceptor(R.id.root));
+        setContentView(R.layout.main_activity);
     }
 }

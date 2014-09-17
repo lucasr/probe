@@ -35,7 +35,8 @@ import java.io.IOException;
 class ProbeViewFactory implements LayoutInflater.Factory2 {
     private static final String DEX_CACHE_DIRECTORY = "probe";
 
-    private static final String FRAGMENT_TAG = "fragment";
+    private static final String TAG_FRAGMENT = "fragment";
+    private static final String TAG_INTERNAL_CLASS = "com.android.internal";
 
     private final Context mContext;
     private final Probe mProbe;
@@ -59,7 +60,7 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
 
     @Override
     public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-        if (FRAGMENT_TAG.equals(name)) {
+        if (name.equals(TAG_FRAGMENT) || name.startsWith(TAG_INTERNAL_CLASS)) {
             return null;
         }
 
