@@ -35,6 +35,8 @@ import java.io.IOException;
 class ProbeViewFactory implements LayoutInflater.Factory2 {
     private static final String DEX_CACHE_DIRECTORY = "probe";
 
+    private static final String FRAGMENT_TAG = "fragment";
+
     private final Context mContext;
     private final Probe mProbe;
 
@@ -57,6 +59,10 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
 
     @Override
     public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
+        if (FRAGMENT_TAG.equals(name)) {
+            return null;
+        }
+
         final org.lucasr.probe.Filter filter = mProbe.getFilter();
 
         // Proxy the whole view tree if filter is undefined.
