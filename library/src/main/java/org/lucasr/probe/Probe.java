@@ -33,8 +33,8 @@ import java.lang.reflect.InvocationHandler;
  * public final class MainActivity extends Activity {
  *     @Override
  *     protected void onCreate(Bundle savedInstanceState) {
- *         super.onCreate(savedInstanceState);
  *         Probe.deploy(this, new MyInterceptor())
+ *         super.onCreate(savedInstanceState);
  *         setContentView(R.id.main_activity);
  *     }
  * }

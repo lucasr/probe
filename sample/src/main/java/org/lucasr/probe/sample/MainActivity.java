@@ -25,8 +25,8 @@ import org.lucasr.probe.interceptors.OvermeasureInterceptor;
 public final class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         Probe.deploy(this, new OvermeasureInterceptor(R.id.root));
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
     }
 }
