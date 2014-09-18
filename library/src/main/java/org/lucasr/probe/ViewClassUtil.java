@@ -35,6 +35,7 @@ class ViewClassUtil {
 
     static final String[] VIEW_CLASS_PREFIX_LIST = {
             "android.widget.",
+            "android.view.",
             "android.webkit."
     };
 
