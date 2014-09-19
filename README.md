@@ -47,7 +47,7 @@ Usage
  public final class MainActivity extends Activity {
      @Override
      protected void onCreate(Bundle savedInstanceState) {
-         Probe.deploy(this, new DrawGreen(), new Filter.viewId(R.id.view2));
+         Probe.deploy(this, new DrawGreen(), new Filter.ViewId(R.id.view2));
          super.onCreate(savedInstanceState);
          setContentView(R.id.main_activity);
      }
