@@ -37,6 +37,7 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
 
     private static final String TAG_FRAGMENT = "fragment";
     private static final String TAG_INTERNAL_CLASS = "com.android.internal";
+    private static final String TAG_VIEW_STUB = "ViewStub";
 
     private final Context mContext;
     private final Probe mProbe;
@@ -60,7 +61,9 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
 
     @Override
     public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-        if (name.equals(TAG_FRAGMENT) || name.startsWith(TAG_INTERNAL_CLASS)) {
+        if (name.equals(TAG_FRAGMENT) ||
+            name.startsWith(TAG_INTERNAL_CLASS) ||
+            name.contains(TAG_VIEW_STUB)) {
             return null;
         }
 
