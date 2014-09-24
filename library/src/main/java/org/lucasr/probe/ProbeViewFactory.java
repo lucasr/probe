@@ -23,6 +23,8 @@ import android.view.View;
 
 import java.io.IOException;
 
+import static org.lucasr.probe.ViewClassUtil.findViewClass;
+
 /**
  * {@link LayoutInflater.Factory2} used by a {@link Probe} instance to
  * inflate layout resources. It will wrap target {@link View}s with dynamic
@@ -49,7 +51,7 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
 
     private View createProxyView(String name, AttributeSet attrs) throws ClassNotFoundException {
         try {
-            return ViewProxyBuilder.forClass(ViewClassUtil.findViewClass(mContext, name))
+            return ViewProxyBuilder.forClass(findViewClass(mContext, name))
                     .dexCache(mContext.getDir(DEX_CACHE_DIRECTORY, Context.MODE_PRIVATE))
                     .constructorArgValues(mContext, attrs)
                     .interceptor(mProbe.getInterceptor())
