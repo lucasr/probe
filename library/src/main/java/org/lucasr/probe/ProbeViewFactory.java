@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 
 import static org.lucasr.probe.ViewClassUtil.findViewClass;
 
@@ -51,7 +52,14 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
 
     private View createProxyView(String name, AttributeSet attrs) throws ClassNotFoundException {
         try {
-            return ViewProxyBuilder.forClass(findViewClass(mContext, name))
+            final Class<?> viewClass = findViewClass(mContext, name);
+
+            // Probe can't wrap final View classes, just bail.
+            if (Modifier.isFinal(viewClass.getModifiers())) {
+                return null;
+            }
+
+            return ViewProxyBuilder.forClass(viewClass)
                     .dexCache(mContext.getDir(DEX_CACHE_DIRECTORY, Context.MODE_PRIVATE))
                     .constructorArgValues(mContext, attrs)
                     .interceptor(mProbe.getInterceptor())
