@@ -65,6 +65,9 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
                     .constructorArgValues(mContext, attrs)
                     .interceptor(mProbe.getInterceptor())
                     .build();
+        } catch (ClassCastException e) {
+            // Not a View subclass, just bail.
+            return null;
         } catch (IOException e) {
             throw new IllegalStateException("Failed to create View proxy", e);
         }
