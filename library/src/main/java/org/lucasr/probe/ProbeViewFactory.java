@@ -54,8 +54,9 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
         try {
             final Class<?> viewClass = findViewClass(mContext, name);
 
-            // Probe can't wrap final View classes, just bail.
-            if (Modifier.isFinal(viewClass.getModifiers())) {
+            // Probe can't wrap final or abstract View classes, just bail.
+            final int modifiers = viewClass.getModifiers();
+            if (Modifier.isFinal(modifiers) || Modifier.isAbstract(modifiers)) {
                 return null;
             }
 
