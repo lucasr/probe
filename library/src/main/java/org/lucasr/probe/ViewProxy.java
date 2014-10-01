@@ -26,6 +26,11 @@ import android.graphics.Canvas;
  */
 public interface ViewProxy {
     /**
+     * Sets the {@link Interceptor} on this proxy.
+     */
+    void setInterceptor(Interceptor interceptor);
+
+    /**
      * Calls {@code super.onMeasure(int, int)}.
      */
     void superOnMeasure(int widthMeasureSpec, int heightMeasureSpec);

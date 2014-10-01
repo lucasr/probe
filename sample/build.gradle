@@ -1,5 +1,15 @@
 apply plugin: 'com.android.application'
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath project(':probe-gradle')
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -7,6 +17,10 @@ repositories {
 android {
     compileSdkVersion 19
     buildToolsVersion '20.0.0'
+
+    defaultConfig {
+        applicationId 'org.lucasr.probe.sample'
+    }
 }
 
 dependencies {

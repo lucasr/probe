@@ -1,10 +1,6 @@
 /*
  * Copyright (C) 2014 Lucas Rocha
  *
- * This code is based on bits and pieces of DexMaker's ProxyBuilder.
- *
- * Copyright (C) 2011 The Android Open Source Project
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,23 +21,11 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.google.dexmaker.Code;
-import com.google.dexmaker.Comparison;
-import com.google.dexmaker.DexMaker;
-import com.google.dexmaker.FieldId;
-import com.google.dexmaker.Label;
-import com.google.dexmaker.Local;
-import com.google.dexmaker.MethodId;
-import com.google.dexmaker.TypeId;
-
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
-import static java.lang.reflect.Modifier.PRIVATE;
-import static java.lang.reflect.Modifier.PUBLIC;
+import static org.lucasr.probe.ViewClassUtil.findProxyViewClass;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Arrays;
@@ -60,55 +44,23 @@ import java.util.Map;
  * @see ProbeViewFactory
  */
 final class ViewProxyBuilder<T extends View> {
-    private enum ViewMethod {
-        ON_MEASURE("onMeasure"),
-        ON_LAYOUT("onLayout"),
-        DRAW("draw"),
-        ON_DRAW("onDraw"),
-        REQUEST_LAYOUT("requestLayout"),
-        SET_MEASURED_DIMENSION("setMeasuredDimension");
-
-        private final String mMethodName;
-        private final String mSuperMethodName;
-
-        private ViewMethod(String methodName) {
-            mMethodName = methodName;
-            mSuperMethodName = "super" + Character.toUpperCase(methodName.charAt(0)) +
-                    methodName.substring(1);
-        }
-
-        String getName() {
-            return mMethodName;
-        }
-
-        String getSuperName() {
-            return mSuperMethodName;
-        }
-    }
-
-    private static final String FIELD_NAME_INTERCEPTOR = "$__interceptor";
-
     private static final Map<Class<?>, Class<?>> sGeneratedProxyClasses =
             Collections.synchronizedMap(new HashMap<Class<?>, Class<?>>());
 
-    private static final ClassLoader PARENT_CLASS_LOADER = ViewProxyBuilder.class.getClassLoader();
-
-    private static final TypeId<Canvas> CANVAS_TYPE = TypeId.get(Canvas.class);
-    private static final TypeId<Interceptor> INTERCEPTOR_TYPE = TypeId.get(Interceptor.class);
-    private static final TypeId<View> VIEW_TYPE = TypeId.get(View.class);
-    private static final TypeId<ViewProxy> VIEW_PROXY_TYPE = TypeId.get(ViewProxy.class);
-    private static final TypeId<Void> VOID_TYPE = TypeId.get(void.class);
-
-    private static final Class<?>[] CONSTRUCTOR_ARG_TYPES =
-            new Class<?>[] { Context.class, AttributeSet.class };
+    static final Class<?>[] CONSTRUCTOR_ARG_TYPES = new Class<?>[] {
+        Context.class, AttributeSet.class
+    };
     private static final Object[] CONSTRUCTOR_ARG_VALUES = new Object[2];
 
+    private final Context mContext;
     private final Class<T> mBaseClass;
-    private File mDexCache;
+    private final ClassLoader mParentClassLoader;
     private Interceptor mInterceptor;
 
-    private ViewProxyBuilder(Class<T> clazz) {
+    private ViewProxyBuilder(Context context, Class<T> clazz) {
+        mContext = context;
         mBaseClass = clazz;
+        mParentClassLoader = context.getClassLoader();
     }
 
     private static <T> Constructor<? extends T> getProxyClassConstructor(Class<? extends T> proxyClass) {
@@ -124,319 +76,31 @@ final class ViewProxyBuilder<T extends View> {
     }
 
     /**
-     * Generates class field that holds a reference to the associated
-     * {@link Interceptor} instance and the {@link View} constructor.
-     */
-    private static <T, G extends T> void generateConstructorAndFields(DexMaker dexMaker,
-                                                                      TypeId<G> generatedType,
-                                                                      TypeId<T> baseType) {
-        final FieldId<G, Interceptor> interceptorField =
-                generatedType.getField(INTERCEPTOR_TYPE, FIELD_NAME_INTERCEPTOR);
-        dexMaker.declare(interceptorField, PRIVATE, null);
-
-        final TypeId<?>[] types = classArrayToTypeArray(CONSTRUCTOR_ARG_TYPES);
-        final MethodId<?, ?> constructor = generatedType.getConstructor(types);
-        final Code constructorCode = dexMaker.declare(constructor, PUBLIC);
-
-        final Local<?>[] params = new Local[types.length];
-        for (int i = 0; i < params.length; ++i) {
-            params[i] = constructorCode.getParameter(i, types[i]);
-        }
-
-        final MethodId<T, ?> superConstructor = baseType.getConstructor(types);
-        final Local<G> thisRef = constructorCode.getThis(generatedType);
-        constructorCode.invokeDirect(superConstructor, null, thisRef, params);
-        constructorCode.returnVoid();
-    }
-
-    /**
-     * Generates the {@link View#onMeasure(int, int)} method for the proxy class.
-     */
-    private static <T, G extends T> void generateOnMeasureMethod(DexMaker dexMaker,
-                                                                 TypeId<G> generatedType,
-                                                                 TypeId<T> baseType) {
-        final FieldId<G, Interceptor> interceptorField =
-                generatedType.getField(INTERCEPTOR_TYPE, FIELD_NAME_INTERCEPTOR);
-
-        final String methodName = ViewMethod.ON_MEASURE.getName();
-
-        final MethodId<T, Void> superMethod = baseType.getMethod(VOID_TYPE, methodName, TypeId.INT,
-                TypeId.INT);
-        final MethodId<Interceptor, Void> onMeasureMethod =
-                INTERCEPTOR_TYPE.getMethod(VOID_TYPE, methodName, VIEW_TYPE, TypeId.INT, TypeId.INT);
-
-        final MethodId<G, Void> methodId = generatedType.getMethod(VOID_TYPE, methodName,
-                TypeId.INT, TypeId.INT);
-        final Code code = dexMaker.declare(methodId, PUBLIC);
-
-        final Local<G> localThis = code.getThis(generatedType);
-        final Local<Interceptor> nullInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-        final Local<Interceptor> localInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-        final Local<Integer> localWidth = code.getParameter(0, TypeId.INT);
-        final Local<Integer> localHeight = code.getParameter(1, TypeId.INT);
-
-        code.iget(interceptorField, localInterceptor, localThis);
-        code.loadConstant(nullInterceptor, null);
-
-        // Interceptor is not null, call it.
-        final Label interceptorNullCase = new Label();
-        code.compare(Comparison.EQ, interceptorNullCase, nullInterceptor, localInterceptor);
-        code.invokeVirtual(onMeasureMethod, null, localInterceptor, localThis,
-                localWidth, localHeight);
-        code.returnVoid();
-
-        // Interceptor is null, call super method.
-        code.mark(interceptorNullCase);
-        code.invokeSuper(superMethod, null, localThis, localWidth, localHeight);
-        code.returnVoid();
-
-        final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                ViewMethod.ON_MEASURE.getSuperName(), TypeId.INT, TypeId.INT);
-
-        final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
-
-        final Local<G> superThis = superCode.getThis(generatedType);
-        final Local<Integer> superLocalWidth = superCode.getParameter(0, TypeId.INT);
-        final Local<Integer> superLocalHeight = superCode.getParameter(1, TypeId.INT);
-        superCode.invokeSuper(superMethod, null, superThis, superLocalWidth, superLocalHeight);
-        superCode.returnVoid();
-    }
-
-    /**
-     * Generates the {@link View#onLayout(boolean, int, int, int, int)} method
-     * for the proxy class.
-     */
-    private static <T, G extends T> void generateOnLayoutMethod(DexMaker dexMaker,
-                                                                TypeId<G> generatedType,
-                                                                TypeId<T> baseType) {
-        final FieldId<G, Interceptor> interceptorField =
-                generatedType.getField(INTERCEPTOR_TYPE, FIELD_NAME_INTERCEPTOR);
-
-        final String methodName = ViewMethod.ON_LAYOUT.getName();
-
-        final MethodId<T, Void> superMethod = baseType.getMethod(VOID_TYPE, methodName,
-                TypeId.BOOLEAN, TypeId.INT, TypeId.INT, TypeId.INT, TypeId.INT);
-        final MethodId<Interceptor, Void> onLayoutMethod =
-                INTERCEPTOR_TYPE.getMethod(VOID_TYPE, methodName, VIEW_TYPE, TypeId.BOOLEAN,
-                        TypeId.INT, TypeId.INT, TypeId.INT, TypeId.INT);
-
-        final MethodId<G, Void> methodId = generatedType.getMethod(VOID_TYPE, methodName,
-                TypeId.BOOLEAN, TypeId.INT, TypeId.INT, TypeId.INT, TypeId.INT);
-        final Code code = dexMaker.declare(methodId, PUBLIC);
-
-        final Local<G> localThis = code.getThis(generatedType);
-        final Local<Interceptor> nullInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-        final Local<Interceptor> localInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-        final Local<Boolean> localChanged = code.getParameter(0, TypeId.BOOLEAN);
-        final Local<Integer> localLeft = code.getParameter(1, TypeId.INT);
-        final Local<Integer> localTop = code.getParameter(2, TypeId.INT);
-        final Local<Integer> localRight = code.getParameter(3, TypeId.INT);
-        final Local<Integer> localBottom = code.getParameter(4, TypeId.INT);
-
-        code.iget(interceptorField, localInterceptor, localThis);
-        code.loadConstant(nullInterceptor, null);
-
-        // Interceptor is not null, call it.
-        final Label interceptorNullCase = new Label();
-        code.compare(Comparison.EQ, interceptorNullCase, nullInterceptor, localInterceptor);
-        code.invokeVirtual(onLayoutMethod, null, localInterceptor, localThis, localChanged,
-                localLeft, localTop, localRight, localBottom);
-        code.returnVoid();
-
-        // Interceptor is null, call super method.
-        code.mark(interceptorNullCase);
-        code.invokeSuper(superMethod, null, localThis, localChanged, localLeft, localTop,
-                localRight, localBottom);
-        code.returnVoid();
-
-        final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                ViewMethod.ON_LAYOUT.getSuperName(), TypeId.BOOLEAN, TypeId.INT, TypeId.INT,
-                TypeId.INT, TypeId.INT);
-
-        final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
-
-        final Local<G> superThis = superCode.getThis(generatedType);
-        final Local<Boolean> superLocalChanged = superCode.getParameter(0, TypeId.BOOLEAN);
-        final Local<Integer> superLocalLeft = superCode.getParameter(1, TypeId.INT);
-        final Local<Integer> superLocalTop = superCode.getParameter(2, TypeId.INT);
-        final Local<Integer> superLocalRight = superCode.getParameter(3, TypeId.INT);
-        final Local<Integer> superLocalBottom = superCode.getParameter(4, TypeId.INT);
-        superCode.invokeSuper(superMethod, null, superThis, superLocalChanged, superLocalLeft,
-                superLocalTop, superLocalRight, superLocalBottom);
-        superCode.returnVoid();
-    }
-
-    /**
-     * Generates the {@link View#draw(Canvas)} method for the proxy class.
-     */
-    private static <T, G extends T> void generateDrawMethod(DexMaker dexMaker,
-                                                            TypeId<G> generatedType,
-                                                            TypeId<T> baseType,
-                                                            ViewMethod viewMethod) {
-        final FieldId<G, Interceptor> interceptorField =
-                generatedType.getField(INTERCEPTOR_TYPE, FIELD_NAME_INTERCEPTOR);
-
-        final String methodName = viewMethod.getName();
-
-        final MethodId<T, Void> superMethod = baseType.getMethod(VOID_TYPE, methodName, CANVAS_TYPE);
-        final MethodId<Interceptor, Void> drawMethod =
-                INTERCEPTOR_TYPE.getMethod(VOID_TYPE, methodName, VIEW_TYPE, CANVAS_TYPE);
-
-        final MethodId<G, Void> methodId = generatedType.getMethod(VOID_TYPE, methodName, CANVAS_TYPE);
-        final Code code = dexMaker.declare(methodId, PUBLIC);
-
-        final Local<G> localThis = code.getThis(generatedType);
-        final Local<Interceptor> nullInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-        final Local<Interceptor> localInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-        final Local<Canvas> localCanvas = code.getParameter(0, CANVAS_TYPE);
-
-        code.iget(interceptorField, localInterceptor, localThis);
-        code.loadConstant(nullInterceptor, null);
-
-        // Interceptor is not null, call it.
-        final Label interceptorNullCase = new Label();
-        code.compare(Comparison.EQ, interceptorNullCase, nullInterceptor, localInterceptor);
-        code.invokeVirtual(drawMethod, null, localInterceptor, localThis, localCanvas);
-        code.returnVoid();
-
-        // Interceptor is null, call super method.
-        code.mark(interceptorNullCase);
-        code.invokeSuper(superMethod, null, localThis, localCanvas);
-        code.returnVoid();
-
-        final MethodId<G, Void> callsSuperMethod =
-                generatedType.getMethod(VOID_TYPE, viewMethod.getSuperName(), CANVAS_TYPE);
-
-        final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
-
-        final Local<G> superThis = superCode.getThis(generatedType);
-        final Local<Canvas> superLocalCanvas = superCode.getParameter(0, CANVAS_TYPE);
-        superCode.invokeSuper(superMethod, null, superThis, superLocalCanvas);
-        superCode.returnVoid();
-    }
-
-    /**
-     * Generates the {@link View#onDraw(Canvas)} method for the proxy class.
-     */
-    private static <T, G extends T> void generateDrawMethods(DexMaker dexMaker,
-                                                             TypeId<G> generatedType,
-                                                             TypeId<T> baseType) {
-        generateDrawMethod(dexMaker, generatedType, baseType, ViewMethod.DRAW);
-        generateDrawMethod(dexMaker, generatedType, baseType, ViewMethod.ON_DRAW);
-    }
-
-    /**
-     * Generates the {@link View#requestLayout()} method for the proxy class.
-     */
-    private static <T, G extends T> void generateRequestLayoutMethod(DexMaker dexMaker,
-                                                                     TypeId<G> generatedType,
-                                                                     TypeId<T> baseType) {
-        final FieldId<G, Interceptor> interceptorField =
-                generatedType.getField(INTERCEPTOR_TYPE, FIELD_NAME_INTERCEPTOR);
-
-        final String methodName = ViewMethod.REQUEST_LAYOUT.getName();
-
-        final MethodId<T, Void> superMethod = baseType.getMethod(VOID_TYPE, methodName);
-        final MethodId<Interceptor, Void> requestLayoutMethod =
-                INTERCEPTOR_TYPE.getMethod(VOID_TYPE, methodName, VIEW_TYPE);
-
-        final MethodId<?, ?> methodId = generatedType.getMethod(VOID_TYPE, methodName);
-        final Code code = dexMaker.declare(methodId, PUBLIC);
-
-        final Local<G> localThis = code.getThis(generatedType);
-        final Local<Interceptor> nullInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-        final Local<Interceptor> localInterceptor = code.newLocal(INTERCEPTOR_TYPE);
-
-        code.iget(interceptorField, localInterceptor, localThis);
-        code.loadConstant(nullInterceptor, null);
-
-        // Interceptor is not null, call it.
-        final Label interceptorNullCase = new Label();
-        code.compare(Comparison.EQ, interceptorNullCase, nullInterceptor, localInterceptor);
-        code.invokeVirtual(requestLayoutMethod, null, localInterceptor, localThis);
-        code.returnVoid();
-
-        // Interceptor is null, call super method.
-        code.mark(interceptorNullCase);
-        code.invokeSuper(superMethod, null, localThis);
-        code.returnVoid();
-
-        final MethodId<G, Void> callsSuperMethod =
-                generatedType.getMethod(VOID_TYPE, ViewMethod.REQUEST_LAYOUT.getSuperName());
-
-        final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
-
-        final Local<G> superThis = superCode.getThis(generatedType);
-        superCode.invokeSuper(superMethod, null, superThis);
-        superCode.returnVoid();
-    }
-
-    /**
-     * Generates the {@link View#setMeasuredDimension(int, int)} method for
-     * the proxy class.
-     */
-    private static <T, G extends T> void generateSetMeasuredDimension(DexMaker dexMaker,
-                                                                      TypeId<G> generatedType,
-                                                                      TypeId<T> baseType) {
-        final String methodName = ViewMethod.SET_MEASURED_DIMENSION.getName();
-
-        final MethodId<T, Void> superMethod = baseType.getMethod(VOID_TYPE, methodName, TypeId.INT,
-                TypeId.INT);
-
-        final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                ViewMethod.SET_MEASURED_DIMENSION.getSuperName(), TypeId.INT, TypeId.INT);
-
-        final Code code = dexMaker.declare(callsSuperMethod, PUBLIC);
-
-        final Local<G> localThis = code.getThis(generatedType);
-        final Local<Integer> localWidth = code.getParameter(0, TypeId.INT);
-        final Local<Integer> localHeight = code.getParameter(1, TypeId.INT);
-        code.invokeSuper(superMethod, null, localThis, localWidth, localHeight);
-        code.returnVoid();
-    }
-
-    /**
      * Generates dynamic {@link View} proxy class.
      */
     @SuppressWarnings("unchecked")
     private Class<? extends T> generateProxyClass() throws IOException {
         Class<? extends T> proxyClass = (Class) sGeneratedProxyClasses.get(mBaseClass);
-        if (proxyClass != null && proxyClass.getClassLoader().getParent() == PARENT_CLASS_LOADER) {
+        if (proxyClass != null &&
+                (proxyClass.getClassLoader() == mParentClassLoader ||
+                 proxyClass.getClassLoader().getParent() == mParentClassLoader)) {
             // Cache hit; return immediately.
             return proxyClass;
         }
 
-        // Cache missed; generate the proxy class.
-        final DexMaker dexMaker = new DexMaker();
-
-        final String proxyClassName = getClassNameForProxyOf(mBaseClass);
-        final TypeId<? extends T> generatedType = TypeId.get("L" + proxyClassName + ";");
-        final TypeId<T> baseType = TypeId.get(mBaseClass);
-
-        generateConstructorAndFields(dexMaker, generatedType, baseType);
-        generateOnMeasureMethod(dexMaker, generatedType, baseType);
-        generateOnLayoutMethod(dexMaker, generatedType, baseType);
-        generateDrawMethods(dexMaker, generatedType, baseType);
-        generateRequestLayoutMethod(dexMaker, generatedType, baseType);
-        generateSetMeasuredDimension(dexMaker, generatedType, baseType);
-
-        dexMaker.declare(generatedType, proxyClassName + ".generated", PUBLIC, baseType,
-                VIEW_PROXY_TYPE);
-
-        final ClassLoader classLoader = dexMaker.generateAndLoad(PARENT_CLASS_LOADER, mDexCache);
-        try {
-            proxyClass = (Class<? extends T>) classLoader.loadClass(proxyClassName);
-        } catch (IllegalAccessError e) {
-            // Thrown when the base class is not accessible.
-            throw new UnsupportedOperationException(
-                    "cannot proxy inaccessible class " + mBaseClass, e);
-        } catch (ClassNotFoundException e) {
-            // Should not be thrown, we're sure to have generated this class.
-            throw new AssertionError(e);
+        proxyClass = (Class<? extends T>) findProxyViewClass(mContext, mBaseClass.getName());
+        if (proxyClass != null) {
+            // This app ships with the build-time proxy.
+            sGeneratedProxyClasses.put(mBaseClass, proxyClass);
+            return proxyClass;
         }
 
-        sGeneratedProxyClasses.put(mBaseClass, proxyClass);
-        return proxyClass;
+        try {
+            Class.forName("com.google.dexmaker.DexMaker");
+            return DexProxyBuilder.generateProxyClass(mContext, mBaseClass);
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
     }
 
     private static RuntimeException launderCause(InvocationTargetException e) {
@@ -454,38 +118,6 @@ final class ViewProxyBuilder<T extends View> {
 
         // Declared exceptions will have to be wrapped.
         throw new UndeclaredThrowableException(cause);
-    }
-
-    private static void setInterceptorInstanceField(Object instance, Interceptor interceptor) {
-        try {
-            final Field interceptorField =
-                    instance.getClass().getDeclaredField(FIELD_NAME_INTERCEPTOR);
-            interceptorField.setAccessible(true);
-            interceptorField.set(instance, interceptor);
-        } catch (NoSuchFieldException e) {
-            // Should not be thrown, generated proxy class has been generated with this field.
-            throw new AssertionError(e);
-        } catch (IllegalAccessException e) {
-            // Should not be thrown, we just set the field to accessible.
-            throw new AssertionError(e);
-        }
-    }
-
-    private static <T> String getClassNameForProxyOf(Class<? extends T> clazz) {
-        return clazz.getSimpleName() + "_Proxy";
-    }
-
-    private static TypeId<?>[] classArrayToTypeArray(Class<?>[] input) {
-        final TypeId<?>[] result = new TypeId[input.length];
-        for (int i = 0; i < input.length; ++i) {
-            result[i] = TypeId.get(input[i]);
-        }
-
-        return result;
-    }
-
-    static <T> ViewProxyBuilder forClass(Class<T> clazz) {
-        return new ViewProxyBuilder(clazz);
     }
 
     /**
@@ -536,13 +168,12 @@ final class ViewProxyBuilder<T extends View> {
         proxy.superSetMeasuredDimension(width, height);
     }
 
-    ViewProxyBuilder interceptor(Interceptor interceptor) {
-        mInterceptor = interceptor;
-        return this;
+    static <T> ViewProxyBuilder forClass(Context context, Class<T> clazz) {
+        return new ViewProxyBuilder(context, clazz);
     }
 
-    ViewProxyBuilder dexCache(File dexCache) {
-        mDexCache = dexCache;
+    ViewProxyBuilder interceptor(Interceptor interceptor) {
+        mInterceptor = interceptor;
         return this;
     }
 
@@ -557,6 +188,10 @@ final class ViewProxyBuilder<T extends View> {
      */
     View build() throws IOException {
         final Class<? extends T> proxyClass = generateProxyClass();
+        if (proxyClass == null) {
+            return null;
+        }
+
         final Constructor<? extends T> constructor = getProxyClassConstructor(proxyClass);
 
         final View result;
@@ -573,7 +208,7 @@ final class ViewProxyBuilder<T extends View> {
             throw launderCause(e);
         }
 
-        setInterceptorInstanceField(result, mInterceptor);
+        ((ViewProxy) result).setInterceptor(mInterceptor);
         return result;
     }
 }

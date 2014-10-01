@@ -1,0 +1,14 @@
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    compile 'com.squareup:javawriter:2.5.0'
+    compile 'com.android.tools.build:gradle:0.13.+'
+}
+
+apply from: 'gradle-mvn-plugin-push.gradle'

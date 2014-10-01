@@ -36,8 +36,6 @@ import static org.lucasr.probe.ViewClassUtil.findViewClass;
  * @see ViewProxyBuilder
  */
 class ProbeViewFactory implements LayoutInflater.Factory2 {
-    private static final String DEX_CACHE_DIRECTORY = "probe";
-
     private static final String TAG_FRAGMENT = "fragment";
     private static final String TAG_INTERNAL_CLASS = "com.android.internal";
     private static final String TAG_VIEW_STUB = "ViewStub";
@@ -50,7 +48,8 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
         mProbe = probe;
     }
 
-    private View createProxyView(String name, AttributeSet attrs) throws ClassNotFoundException {
+    private View createProxyView(Context context, String name, AttributeSet attrs)
+            throws ClassNotFoundException {
         try {
             final Class<?> viewClass = findViewClass(mContext, name);
 
@@ -60,8 +59,7 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
                 return null;
             }
 
-            return ViewProxyBuilder.forClass(viewClass)
-                    .dexCache(mContext.getDir(DEX_CACHE_DIRECTORY, Context.MODE_PRIVATE))
+            return ViewProxyBuilder.forClass(context, viewClass)
                     .constructorArgValues(mContext, attrs)
                     .interceptor(mProbe.getInterceptor())
                     .build();
@@ -86,7 +84,7 @@ class ProbeViewFactory implements LayoutInflater.Factory2 {
         // Proxy the whole view tree if filter is undefined.
         if (filter == null || filter.shouldIntercept(mContext, parent, name, attrs)) {
             try {
-                return createProxyView(name, attrs);
+                return createProxyView(context, name, attrs);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
