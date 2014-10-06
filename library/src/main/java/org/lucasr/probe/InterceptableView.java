@@ -19,12 +19,14 @@ package org.lucasr.probe;
 import android.graphics.Canvas;
 
 /**
- * Defines contract for a {@link android.view.View} proxy class.
+ * Defines contract for a {@link android.view.View} that can be intercepted.
  * <p>
- * Under the hood, {@link Probe} will create dynamic {@link android.view.View}
- * proxies that complies with this interface when inflating views.
+ * Under the hood, {@link Probe} will use either static or dynamic
+ * {@link android.view.View} proxies that complies with this interface
+ * when inflating views. If you make your own views comply with interface,
+ * Probe will not need to use proxy classes to intercept calls.
  */
-public interface ViewProxy {
+public interface InterceptableView {
     /**
      * Sets the {@link Interceptor} on this proxy.
      */

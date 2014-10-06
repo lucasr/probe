@@ -124,48 +124,48 @@ final class ViewProxyBuilder<T extends View> {
      * Calls {@code super.onMeasure(int, int)} on the given {@link View}.
      */
     static void superOnMeasure(View view, int widthMeasureSpec, int heightMeasureSpec) {
-        final ViewProxy proxy = (ViewProxy) view;
-        proxy.superOnMeasure(widthMeasureSpec, heightMeasureSpec);
+        final InterceptableView interceptable = (InterceptableView) view;
+        interceptable.superOnMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     /**
      * Calls {@code super.onLayout(boolean, int, int, int, int)} on the given {@link View}.
      */
     static void superOnLayout(View view, boolean changed, int l, int t, int r, int b) {
-        final ViewProxy proxy = (ViewProxy) view;
-        proxy.superOnLayout(changed, l, t, r, b);
+        final InterceptableView interceptable = (InterceptableView) view;
+        interceptable.superOnLayout(changed, l, t, r, b);
     }
 
     /**
      * Calls {@code super.draw(Canvas)} on the given {@link View}.
      */
     static void superDraw(View view, Canvas canvas) {
-        final ViewProxy proxy = (ViewProxy) view;
-        proxy.superDraw(canvas);
+        final InterceptableView interceptable = (InterceptableView) view;
+        interceptable.superDraw(canvas);
     }
 
     /**
      * Calls {@code super.onDraw(Canvas)} on the given {@link View}.
      */
     static void superOnDraw(View view, Canvas canvas) {
-        final ViewProxy proxy = (ViewProxy) view;
-        proxy.superOnDraw(canvas);
+        final InterceptableView interceptable = (InterceptableView) view;
+        interceptable.superOnDraw(canvas);
     }
 
     /**
      * Calls {@code super.requestLayout()} on the given {@link View}.
      */
     static void superRequestLayout(View view) {
-        final ViewProxy proxy = (ViewProxy) view;
-        proxy.superRequestLayout();
+        final InterceptableView interceptable = (InterceptableView) view;
+        interceptable.superRequestLayout();
     }
 
     /**
      * Calls {@code super.setMeasuredDimension(int, int)} on the given {@link View}.
      */
     static void superSetMeasuredDimension(View view, int width, int height) {
-        final ViewProxy proxy = (ViewProxy) view;
-        proxy.superSetMeasuredDimension(width, height);
+        final InterceptableView interceptable = (InterceptableView) view;
+        interceptable.superSetMeasuredDimension(width, height);
     }
 
     static <T> ViewProxyBuilder forClass(Context context, Class<T> clazz) {
@@ -208,7 +208,7 @@ final class ViewProxyBuilder<T extends View> {
             throw launderCause(e);
         }
 
-        ((ViewProxy) result).setInterceptor(mInterceptor);
+        ((InterceptableView) result).setInterceptor(mInterceptor);
         return result;
     }
 }

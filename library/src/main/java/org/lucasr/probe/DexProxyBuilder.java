@@ -83,7 +83,8 @@ final class DexProxyBuilder {
     private static final TypeId<Canvas> CANVAS_TYPE = TypeId.get(Canvas.class);
     private static final TypeId<Interceptor> INTERCEPTOR_TYPE = TypeId.get(Interceptor.class);
     private static final TypeId<View> VIEW_TYPE = TypeId.get(View.class);
-    private static final TypeId<ViewProxy> VIEW_PROXY_TYPE = TypeId.get(ViewProxy.class);
+    private static final TypeId<InterceptableView> INTERCEPTABLE_VIEW_TYPE =
+            TypeId.get(InterceptableView.class);
     private static final TypeId<Void> VOID_TYPE = TypeId.get(void.class);
 
     private DexProxyBuilder() {
@@ -418,7 +419,7 @@ final class DexProxyBuilder {
         generateSetInterceptor(dexMaker, generatedType, baseType);
 
         dexMaker.declare(generatedType, proxyClassName + ".generated", PUBLIC, baseType,
-                VIEW_PROXY_TYPE);
+                INTERCEPTABLE_VIEW_TYPE);
 
         final ClassLoader classLoader = dexMaker.generateAndLoad(context.getClassLoader(),
                 context.getDir(DEX_CACHE_DIRECTORY, Context.MODE_PRIVATE));

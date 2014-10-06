@@ -32,7 +32,7 @@ class ViewProxyGenerator {
         "android.graphics.Canvas",
         "android.util.AttributeSet",
         "org.lucasr.probe.Interceptor",
-        "org.lucasr.probe.ViewProxy"
+        "org.lucasr.probe.InterceptableView"
     ]
 
     private static final String FIELD_INTERCEPTOR = "mInterceptor"
@@ -98,7 +98,7 @@ class ViewProxyGenerator {
     private static void generateClass(JavaWriter javaWriter, String className,
                                       String proxyName) {
         javaWriter.beginType(proxyName, "class", EnumSet.of(PUBLIC, FINAL),
-                className, "ViewProxy")
+                className, "InterceptableView")
 
         generateFields(javaWriter)
         generateConstructor(javaWriter)
