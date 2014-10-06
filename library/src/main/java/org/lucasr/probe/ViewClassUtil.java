@@ -19,10 +19,6 @@ package org.lucasr.probe;
 import android.content.Context;
 import android.view.View;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
 /**
  * Utility methods to find and load {@link View} classes. Used
  * by {@link ProbeViewFactory}.
@@ -45,6 +41,19 @@ class ViewClassUtil {
     static Class<?> loadViewClass(Context context, String name)
             throws ClassNotFoundException {
         return context.getClassLoader().loadClass(name).asSubclass(View.class);
+    }
+
+    /*
+     * Tries to load the view proxy class generated at build time for the
+     * given class name.
+     */
+    static Class<?> findProxyViewClass(Context context, String name) {
+        try {
+            return loadViewClass(context, String.format("%s.probe.ProbeProxy$%s",
+                    context.getPackageName(), name.replace('.', '_')));
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
     }
 
     /**
