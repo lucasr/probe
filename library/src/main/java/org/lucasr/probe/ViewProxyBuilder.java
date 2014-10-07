@@ -80,6 +80,10 @@ final class ViewProxyBuilder<T extends View> {
      */
     @SuppressWarnings("unchecked")
     private Class<? extends T> generateProxyClass() throws IOException {
+        if (InterceptableView.class.isAssignableFrom(mBaseClass)) {
+            return mBaseClass;
+        }
+
         Class<? extends T> proxyClass = (Class) sGeneratedProxyClasses.get(mBaseClass);
         if (proxyClass != null &&
                 (proxyClass.getClassLoader() == mParentClassLoader ||
