@@ -11,4 +11,4 @@ dependencies {
     compile 'com.android.tools.build:gradle:0.13.+'
 }
 
-apply from: 'gradle-mvn-plugin-push.gradle'
+apply from: 'https://raw.githubusercontent.com/lucasr/gradle-plugin-mvn-push/master/gradle-plugin-mvn-push.gradle'
