@@ -34,10 +34,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Builds a lightweight dynamic proxy class that redirects {@link View}
- * layout-related method calls to an {@link Interceptor}.
+ * Builds a proxy class that redirects {@link View} layout-related method
+ * calls to an {@link Interceptor}.
  *
- * {@link ViewProxyBuilder} is used by {@link ProbeViewFactory} to dynamically
+ * {@link ViewProxyBuilder} is used by {@link ProbeViewFactory} to
  * wrap the inflated {@link View} instances for a given {@link Probe}.
  *
  * @see Probe

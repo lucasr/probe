@@ -39,8 +39,26 @@ import java.lang.reflect.InvocationHandler;
  *     }
  * }
  * </pre>
- * If no {@link Filter} is provided, the {@link Interceptor} will act on
- * every inflated {@link View} in the target {@link Context}.
+ *
+ * <h2>View proxies</h2>
+ * <p>If no {@link Filter} is provided, the {@link Interceptor} will act on
+ * every inflated {@link View} in the target {@link Context}.</p>
+ *
+ * <p>Probe intercepts {@link View} method calls by inflating proxies
+ * instead of the original views. These proxies can be generated either
+ * at build or run time.</p>
+ *
+ * <p>If you use Gradle, you can use Probe's plugin which will take care
+ * of generating the proxy classes for you. Build-time proxies add virtually
+ * no runtime overhead as they're just subclasses of the views referenced
+ * in your layout resources.</p>
+ *
+ * <p>If you app doesn't include build-time proxies, Probe will dynamically
+ * generate {@link View} proxy classes at runtime using DexMaker, if your
+ * app was compiled with DexMaker as a dependency. Runtime proxies are
+ * relatively slow to generate and will greatly affect the time to
+ * inflate your layouts. They should only be used for debugging
+ * purposes.</p>
  *
  * @see #deploy(Context,Interceptor)
  * @see #deploy(Context,Interceptor,Filter)
