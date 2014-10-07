@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven'
 
 repositories {
     mavenCentral()
@@ -14,3 +15,17 @@ dependencies {
 }
 
 apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+
+afterEvaluate { project ->
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                pom.whenConfigured {
+                    def dep = dependencies.find { it.groupId == 'com.google.dexmaker' }
+                    dep.optional = true
+                    dep.scope = null
+                }
+            }
+        }
+    }
+}
