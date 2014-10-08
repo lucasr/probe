@@ -45,7 +45,7 @@ class ProbePlugin implements Plugin<Project> {
         }
 
         project.dependencies {
-            compile 'org.lucasr.probe:probe:0.1.3-SNAPSHOT'
+            compile 'org.lucasr.probe:probe:0.1.3'
         }
 
         def buildVariants = project.container(BuildVariantConfig,

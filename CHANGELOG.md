@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 0.1.3
+-------------
+
+ * Rename plugin to org.lucasr.probe
+ * Automatically add compile dependency when plugin
+   is applied.
+
 Version 0.1.2
 -------------
 
