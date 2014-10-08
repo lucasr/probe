@@ -14,7 +14,7 @@ dependencies {
     compile 'com.google.dexmaker:dexmaker:1.1'
 }
 
-apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+apply from: "${rootDir}/gradle/scripts/gradle-mvn-push.gradle"
 
 afterEvaluate { project ->
     uploadArchives {
