@@ -22,7 +22,37 @@ Features
 Usage
 -----
 
- 1. Implement an `Interceptor`:
+ 1. Add buildscript dependency:
+
+  ```groovy
+  buildscript {
+      ...
+      dependencies {
+          ...
+          classpath 'org.lucasr.probe:gradle-plugin:0.1.2'
+      }
+  }
+  ```
+
+ 2. Apply the plugin to your app’s `build.gradle`:
+ 
+  ```groovy
+  apply plugin: 'org.lucasr.probe'
+  ```
+
+ 3. Enable Probe on a build variant:
+
+  ```groovy
+  probe {
+      buildVariants {
+          debug {
+              enabled = true
+          }
+      }
+  }
+  ```
+
+ 4. Implement an `Interceptor`:
 
   ```java
   public class DrawGreen extends Interceptor {
