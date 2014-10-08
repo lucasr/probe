@@ -29,7 +29,7 @@ Usage
       ...
       dependencies {
           ...
-          classpath 'org.lucasr.probe:gradle-plugin:0.1.2'
+          classpath 'org.lucasr.probe:gradle-plugin:0.1.3'
       }
   }
   ```
