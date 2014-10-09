@@ -55,6 +55,7 @@ final class DexProxyBuilder {
         DRAW("draw"),
         ON_DRAW("onDraw"),
         REQUEST_LAYOUT("requestLayout"),
+        FORCE_LAYOUT("forceLayout"),
         SET_MEASURED_DIMENSION("setMeasuredDimension"),
         SET_INTERCEPTOR("setInterceptor");
 
@@ -339,6 +340,52 @@ final class DexProxyBuilder {
     }
 
     /**
+     * Generates the {@link android.view.View#forceLayout()} method for the proxy class.
+     */
+    private static <T, G extends T> void generateForceLayoutMethod(DexMaker dexMaker,
+                                                                   TypeId<G> generatedType,
+                                                                   TypeId<T> baseType) {
+        final FieldId<G, Interceptor> interceptorField =
+                generatedType.getField(INTERCEPTOR_TYPE, FIELD_NAME_INTERCEPTOR);
+
+        final String methodName = ViewMethod.FORCE_LAYOUT.getName();
+
+        final MethodId<T, Void> superMethod = baseType.getMethod(VOID_TYPE, methodName);
+        final MethodId<Interceptor, Void> forceLayoutMethod =
+                INTERCEPTOR_TYPE.getMethod(VOID_TYPE, methodName, VIEW_TYPE);
+
+        final MethodId<?, ?> methodId = generatedType.getMethod(VOID_TYPE, methodName);
+        final Code code = dexMaker.declare(methodId, PUBLIC);
+
+        final Local<G> localThis = code.getThis(generatedType);
+        final Local<Interceptor> nullInterceptor = code.newLocal(INTERCEPTOR_TYPE);
+        final Local<Interceptor> localInterceptor = code.newLocal(INTERCEPTOR_TYPE);
+
+        code.iget(interceptorField, localInterceptor, localThis);
+        code.loadConstant(nullInterceptor, null);
+
+        // Interceptor is not null, call it.
+        final Label interceptorNullCase = new Label();
+        code.compare(Comparison.EQ, interceptorNullCase, nullInterceptor, localInterceptor);
+        code.invokeVirtual(forceLayoutMethod, null, localInterceptor, localThis);
+        code.returnVoid();
+
+        // Interceptor is null, call super method.
+        code.mark(interceptorNullCase);
+        code.invokeSuper(superMethod, null, localThis);
+        code.returnVoid();
+
+        final MethodId<G, Void> callsSuperMethod =
+                generatedType.getMethod(VOID_TYPE, ViewMethod.FORCE_LAYOUT.getInvokeName());
+
+        final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
+
+        final Local<G> superThis = superCode.getThis(generatedType);
+        superCode.invokeSuper(superMethod, null, superThis);
+        superCode.returnVoid();
+    }
+
+    /**
      * Generates the {@link android.view.View#setMeasuredDimension(int, int)} method for
      * the proxy class.
      */
@@ -415,6 +462,7 @@ final class DexProxyBuilder {
         generateOnLayoutMethod(dexMaker, generatedType, baseType);
         generateDrawMethods(dexMaker, generatedType, baseType);
         generateRequestLayoutMethod(dexMaker, generatedType, baseType);
+        generateForceLayoutMethod(dexMaker, generatedType, baseType);
         generateSetMeasuredDimension(dexMaker, generatedType, baseType);
         generateSetInterceptor(dexMaker, generatedType, baseType);
 

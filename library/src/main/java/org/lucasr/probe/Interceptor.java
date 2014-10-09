@@ -126,6 +126,22 @@ public class Interceptor {
     }
 
     /**
+     * Intercepts a {@link View#forceLayout()} call on the given {@link View}. By default,
+     * it simply calls the view's original method.
+     */
+    public void forceLayout(View view) {
+        invokeForceLayout(view);
+    }
+
+    /**
+     * Performs a {@link View#forceLayout()} call on the given {@link View}.
+     */
+    protected final void invokeForceLayout(View view) {
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.invokeForceLayout();
+    }
+
+    /**
      * Calls {@link View#setMeasuredDimension(int, int)} on the given {@link View}.
      * This can be used to override {@link View#onMeasure(int, int)} calls on-the-fly
      * in interceptors.

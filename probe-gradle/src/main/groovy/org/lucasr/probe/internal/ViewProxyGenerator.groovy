@@ -43,6 +43,7 @@ class ViewProxyGenerator {
     private static final String METHOD_DRAW = "draw"
     private static final String METHOD_ON_DRAW = "onDraw"
     private static final String METHOD_REQUEST_LAYOUT = "requestLayout"
+    private static final String METHOD_FORCE_LAYOUT = "forceLayout"
 
     // setInterceptor(Interceptor)
     private static final String PARAM_INTERCEPTOR = "interceptor"
@@ -107,6 +108,7 @@ class ViewProxyGenerator {
         generateOnLayoutMethod(javaWriter)
         generateDrawMethods(javaWriter)
         generateRequestLayoutMethod(javaWriter)
+        generateForceLayoutMethod(javaWriter)
         generateSetMeasuredDimensionMethod(javaWriter)
 
         javaWriter.endType()
@@ -227,12 +229,26 @@ class ViewProxyGenerator {
     }
 
     private static void generateRequestLayoutMethod(JavaWriter javaWriter) {
-        beginRequestLayoutMethod(javaWriter, METHOD_REQUEST_LAYOUT)
+        beginForceLayoutMethod(javaWriter, METHOD_REQUEST_LAYOUT)
         generateInterceptorConditional(javaWriter, METHOD_REQUEST_LAYOUT)
         javaWriter.endMethod()
 
-        beginRequestLayoutMethod(javaWriter, "invokeRequestLayout")
+        beginForceLayoutMethod(javaWriter, "invokeRequestLayout")
         javaWriter.emitStatement("super.%s()", METHOD_REQUEST_LAYOUT)
+        javaWriter.endMethod()
+    }
+
+    private static void beginForceLayoutMethod(JavaWriter javaWriter, String methodName) {
+        javaWriter.beginMethod("void", methodName, EnumSet.of(PUBLIC))
+    }
+
+    private static void generateForceLayoutMethod(JavaWriter javaWriter) {
+        beginForceLayoutMethod(javaWriter, METHOD_FORCE_LAYOUT)
+        generateInterceptorConditional(javaWriter, METHOD_FORCE_LAYOUT)
+        javaWriter.endMethod()
+
+        beginForceLayoutMethod(javaWriter, "invokeForceLayout")
+        javaWriter.emitStatement("super.%s()", METHOD_FORCE_LAYOUT)
         javaWriter.endMethod()
     }
 

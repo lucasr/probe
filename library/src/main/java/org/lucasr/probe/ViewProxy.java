@@ -58,6 +58,11 @@ public interface ViewProxy {
     void invokeRequestLayout();
 
     /**
+     * Calls {@code super.forceLayout()}.
+     */
+    void invokeForceLayout();
+
+    /**
      * Calls {@code super.onSetMeasuredDimension(int, int)}.
      */
     void invokeSetMeasuredDimension(int width, int height);
