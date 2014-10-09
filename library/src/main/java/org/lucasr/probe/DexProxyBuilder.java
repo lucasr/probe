@@ -59,11 +59,11 @@ final class DexProxyBuilder {
         SET_INTERCEPTOR("setInterceptor");
 
         private final String mMethodName;
-        private final String mSuperMethodName;
+        private final String mInvokeMethodName;
 
         private ViewMethod(String methodName) {
             mMethodName = methodName;
-            mSuperMethodName = "super" + Character.toUpperCase(methodName.charAt(0)) +
+            mInvokeMethodName = "invoke" + Character.toUpperCase(methodName.charAt(0)) +
                     methodName.substring(1);
         }
 
@@ -71,8 +71,8 @@ final class DexProxyBuilder {
             return mMethodName;
         }
 
-        String getSuperName() {
-            return mSuperMethodName;
+        String getInvokeName() {
+            return mInvokeMethodName;
         }
     }
 
@@ -83,8 +83,8 @@ final class DexProxyBuilder {
     private static final TypeId<Canvas> CANVAS_TYPE = TypeId.get(Canvas.class);
     private static final TypeId<Interceptor> INTERCEPTOR_TYPE = TypeId.get(Interceptor.class);
     private static final TypeId<View> VIEW_TYPE = TypeId.get(View.class);
-    private static final TypeId<InterceptableView> INTERCEPTABLE_VIEW_TYPE =
-            TypeId.get(InterceptableView.class);
+    private static final TypeId<ViewProxy> INTERCEPTABLE_VIEW_TYPE =
+            TypeId.get(ViewProxy.class);
     private static final TypeId<Void> VOID_TYPE = TypeId.get(void.class);
 
     private DexProxyBuilder() {
@@ -158,7 +158,7 @@ final class DexProxyBuilder {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                ViewMethod.ON_MEASURE.getSuperName(), TypeId.INT, TypeId.INT);
+                ViewMethod.ON_MEASURE.getInvokeName(), TypeId.INT, TypeId.INT);
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -217,7 +217,7 @@ final class DexProxyBuilder {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                ViewMethod.ON_LAYOUT.getSuperName(), TypeId.BOOLEAN, TypeId.INT, TypeId.INT,
+                ViewMethod.ON_LAYOUT.getInvokeName(), TypeId.BOOLEAN, TypeId.INT, TypeId.INT,
                 TypeId.INT, TypeId.INT);
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
@@ -272,7 +272,7 @@ final class DexProxyBuilder {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod =
-                generatedType.getMethod(VOID_TYPE, viewMethod.getSuperName(), CANVAS_TYPE);
+                generatedType.getMethod(VOID_TYPE, viewMethod.getInvokeName(), CANVAS_TYPE);
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -329,7 +329,7 @@ final class DexProxyBuilder {
         code.returnVoid();
 
         final MethodId<G, Void> callsSuperMethod =
-                generatedType.getMethod(VOID_TYPE, ViewMethod.REQUEST_LAYOUT.getSuperName());
+                generatedType.getMethod(VOID_TYPE, ViewMethod.REQUEST_LAYOUT.getInvokeName());
 
         final Code superCode = dexMaker.declare(callsSuperMethod, PUBLIC);
 
@@ -351,7 +351,7 @@ final class DexProxyBuilder {
                 TypeId.INT);
 
         final MethodId<G, Void> callsSuperMethod = generatedType.getMethod(VOID_TYPE,
-                ViewMethod.SET_MEASURED_DIMENSION.getSuperName(), TypeId.INT, TypeId.INT);
+                ViewMethod.SET_MEASURED_DIMENSION.getInvokeName(), TypeId.INT, TypeId.INT);
 
         final Code code = dexMaker.declare(callsSuperMethod, PUBLIC);
 

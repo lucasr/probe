@@ -44,44 +44,94 @@ import android.view.View;
  * specific views in your Android UI.
  */
 public class Interceptor {
+    /**
+     * Intercepts an {@link View#onMeasure(int, int)} call on the given {@link View}.
+     * By default, it simply calls the view's original method.
+     */
     public void onMeasure(View view, int widthMeasureSpec, int heightMeasureSpec) {
-        ViewProxyBuilder.superOnMeasure(view, widthMeasureSpec, heightMeasureSpec);
+        invokeOnMeasure(view, widthMeasureSpec, heightMeasureSpec);
+    }
+
+    /**
+     * Performs a {@link View#onMeasure(int, int)} call on the given {@link View}.
+     */
+    protected final void invokeOnMeasure(View view, int widthMeasureSpec, int heightMeasureSpec) {
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.invokeOnMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     /**
      * Intercepts an {@link View#onLayout(boolean, int, int, int, int)} call on the
-     * given {@link View}.
+     * given {@link View}. By default, it simply calls the view's original method.
      */
     public void onLayout(View view, boolean changed, int l, int t, int r, int b) {
-        ViewProxyBuilder.superOnLayout(view, changed, l, t, r, b);
+        invokeOnLayout(view, changed, l, t, r, b);
     }
 
     /**
-     * Intercepts a {@link View#draw(Canvas)} call on the given {@link View}.
+     * Performs an {@link View#onLayout(boolean, int, int, int, int)} call on the
+     * given {@link View}.
+     */
+    protected final void invokeOnLayout(View view, boolean changed, int l, int t, int r, int b) {
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.invokeOnLayout(changed, l, t, r, b);
+    }
+
+    /**
+     * Intercepts a {@link View#draw(Canvas)} call on the given {@link View}. By default,
+     * it simply calls the view's original method.
      */
     public void draw(View view, Canvas canvas) {
-        ViewProxyBuilder.superDraw(view, canvas);
+        invokeDraw(view, canvas);
     }
 
     /**
-     * Intercepts an {@link View#onDraw(Canvas)} call on the given {@link View}.
+     * Performs a {@link View#draw(Canvas)} call on the given {@link View}.
+     */
+    protected final void invokeDraw(View view, Canvas canvas) {
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.invokeDraw(canvas);
+    }
+
+    /**
+     * Intercepts an {@link View#onDraw(Canvas)} call on the given {@link View}. By default,
+     * it simply calls the view's original method.
      */
     public void onDraw(View view, Canvas canvas) {
-        ViewProxyBuilder.superOnDraw(view, canvas);
+        invokeOnDraw(view, canvas);
     }
 
     /**
-     * Intercepts a {@link View#requestLayout()} call on the given {@link View}.
+     * Performs an {@link View#onDraw(Canvas)} call on the given {@link View}.
+     */
+    protected final void invokeOnDraw(View view, Canvas canvas) {
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.invokeOnDraw(canvas);
+    }
+
+    /**
+     * Intercepts a {@link View#requestLayout()} call on the given {@link View}. By default,
+     * it simply calls the view's original method.
      */
     public void requestLayout(View view) {
-        ViewProxyBuilder.superRequestLayout(view);
+        invokeRequestLayout(view);
+    }
+
+    /**
+     * Performs a {@link View#requestLayout()} call on the given {@link View}.
+     */
+    protected final void invokeRequestLayout(View view) {
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.invokeRequestLayout();
     }
 
     /**
      * Calls {@link View#setMeasuredDimension(int, int)} on the given {@link View}.
-     * This can be used when overriding {@link View#onMeasure(int, int)} calls on-the-fly.
+     * This can be used to override {@link View#onMeasure(int, int)} calls on-the-fly
+     * in interceptors.
      */
     protected final void setMeasuredDimension(View view, int width, int height) {
-        ViewProxyBuilder.superSetMeasuredDimension(view, width, height);
+        final ViewProxy proxy = (ViewProxy) view;
+        proxy.invokeSetMeasuredDimension(width, height);
     }
 }

@@ -32,7 +32,7 @@ class ViewProxyGenerator {
         "android.graphics.Canvas",
         "android.util.AttributeSet",
         "org.lucasr.probe.Interceptor",
-        "org.lucasr.probe.InterceptableView"
+        "org.lucasr.probe.ViewProxy"
     ]
 
     private static final String FIELD_INTERCEPTOR = "mInterceptor"
@@ -98,7 +98,7 @@ class ViewProxyGenerator {
     private static void generateClass(JavaWriter javaWriter, String className,
                                       String proxyName) {
         javaWriter.beginType(proxyName, "class", EnumSet.of(PUBLIC, FINAL),
-                className, "InterceptableView")
+                className, "ViewProxy")
 
         generateFields(javaWriter)
         generateConstructor(javaWriter)
@@ -173,7 +173,7 @@ class ViewProxyGenerator {
                 PARAM_HEIGHT_SPEC)
         javaWriter.endMethod()
 
-        beginOnMeasureMethod(javaWriter, "superOnMeasure", PUBLIC)
+        beginOnMeasureMethod(javaWriter, "invokeOnMeasure", PUBLIC)
         javaWriter.emitStatement("super.%s(%s, %s)", METHOD_ON_MEASURE, PARAM_WIDTH_SPEC,
                 PARAM_HEIGHT_SPEC)
         javaWriter.endMethod()
@@ -192,7 +192,7 @@ class ViewProxyGenerator {
                 PARAM_LEFT, PARAM_TOP, PARAM_RIGHT, PARAM_BOTTOM)
         javaWriter.endMethod()
 
-        beginOnLayoutMethod(javaWriter, "superOnLayout", PUBLIC)
+        beginOnLayoutMethod(javaWriter, "invokeOnLayout", PUBLIC)
         javaWriter.emitStatement("super.%s(%s, %s, %s, %s, %s)", METHOD_ON_LAYOUT,
                 PARAM_CHANGED, PARAM_LEFT, PARAM_TOP, PARAM_RIGHT, PARAM_BOTTOM)
         javaWriter.endMethod()
@@ -209,7 +209,7 @@ class ViewProxyGenerator {
         generateInterceptorConditional(javaWriter, METHOD_DRAW, PARAM_CANVAS)
         javaWriter.endMethod()
 
-        beginDrawMethod(javaWriter, "superDraw", PUBLIC)
+        beginDrawMethod(javaWriter, "invokeDraw", PUBLIC)
         javaWriter.emitStatement("super.%s(%s)", METHOD_DRAW, PARAM_CANVAS)
         javaWriter.endMethod()
 
@@ -217,7 +217,7 @@ class ViewProxyGenerator {
         generateInterceptorConditional(javaWriter, METHOD_ON_DRAW, PARAM_CANVAS)
         javaWriter.endMethod()
 
-        beginDrawMethod(javaWriter, "superOnDraw", PUBLIC)
+        beginDrawMethod(javaWriter, "invokeOnDraw", PUBLIC)
         javaWriter.emitStatement("super.%s(%s)", METHOD_ON_DRAW, PARAM_CANVAS)
         javaWriter.endMethod()
     }
@@ -231,13 +231,13 @@ class ViewProxyGenerator {
         generateInterceptorConditional(javaWriter, METHOD_REQUEST_LAYOUT)
         javaWriter.endMethod()
 
-        beginRequestLayoutMethod(javaWriter, "superRequestLayout")
+        beginRequestLayoutMethod(javaWriter, "invokeRequestLayout")
         javaWriter.emitStatement("super.%s()", METHOD_REQUEST_LAYOUT)
         javaWriter.endMethod()
     }
 
     private static void generateSetMeasuredDimensionMethod(JavaWriter javaWriter) {
-        javaWriter.beginMethod("void", "superSetMeasuredDimension", EnumSet.of(PUBLIC),
+        javaWriter.beginMethod("void", "invokeSetMeasuredDimension", EnumSet.of(PUBLIC),
                 "int", PARAM_WIDTH, "int", PARAM_HEIGHT)
         javaWriter.emitStatement("super.setMeasuredDimension(%s, %s)", PARAM_WIDTH,
                 PARAM_HEIGHT)

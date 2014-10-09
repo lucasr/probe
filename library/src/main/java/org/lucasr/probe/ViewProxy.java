@@ -26,7 +26,7 @@ import android.graphics.Canvas;
  * when inflating views. If you make your own views comply with interface,
  * Probe will not need to use proxy classes to intercept calls.
  */
-public interface InterceptableView {
+public interface ViewProxy {
     /**
      * Sets the {@link Interceptor} on this proxy.
      */
@@ -35,30 +35,30 @@ public interface InterceptableView {
     /**
      * Calls {@code super.onMeasure(int, int)}.
      */
-    void superOnMeasure(int widthMeasureSpec, int heightMeasureSpec);
+    void invokeOnMeasure(int widthMeasureSpec, int heightMeasureSpec);
 
     /**
      * Calls {@code super.onLayout(boolean, int, int, int, int)}.
      */
-    void superOnLayout(boolean changed, int l, int t, int r, int b);
+    void invokeOnLayout(boolean changed, int l, int t, int r, int b);
 
     /**
      * Calls {@code super.draw(Canvas)}.
      */
-    void superDraw(Canvas canvas);
+    void invokeDraw(Canvas canvas);
 
     /**
      * Calls {@code super.onDraw(Canvas)}.
      */
-    void superOnDraw(Canvas canvas);
+    void invokeOnDraw(Canvas canvas);
 
     /**
      * Calls {@code super.requestLayout()}.
      */
-    void superRequestLayout();
+    void invokeRequestLayout();
 
     /**
      * Calls {@code super.onSetMeasuredDimension(int, int)}.
      */
-    void superSetMeasuredDimension(int width, int height);
+    void invokeSetMeasuredDimension(int width, int height);
 }
