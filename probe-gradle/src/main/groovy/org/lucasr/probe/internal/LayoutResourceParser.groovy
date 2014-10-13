@@ -42,7 +42,12 @@ class LayoutResourceParser {
             viewClassNames.add(className)
         }
 
-        node.children().each { traverseLayoutXml(it, viewClassNames) }
+        node.children().each {
+            // children() might contain string elements
+            if (it instanceof Node) {
+                traverseLayoutXml(it, viewClassNames)
+            }
+        }
     }
 
     private static String resolveClassName(String name) {
