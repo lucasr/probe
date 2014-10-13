@@ -54,7 +54,11 @@ class LayoutResourceParser {
         def className
         if (name == 'View') {
             className = "android.view.View"
-        } else if (name == "merge" || name == "include" || name == "ViewStub") {
+        } else if (name == "merge" ||
+                   name == "include" ||
+                   name == "ViewStub" ||
+                   name == "fragment" ||
+                   name == "requestLayout") {
             className = null
         } else if (name.indexOf('.') == -1) {
             className = "android.widget.${name}"
